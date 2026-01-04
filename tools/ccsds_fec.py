@@ -73,17 +73,6 @@ class CCSDSConvolutionalCode:
                         parity ^= (temp_state >> i) & 1
                 encoded.append(parity)
         
-        # Add tail bits (flush the shift register)
-        for _ in range(self.constraint_length - 1):
-            state = (state << 1) & ((1 << (self.constraint_length - 1)) - 1)
-            for gen in self.generators:
-                parity = 0
-                temp_state = state
-                for i in range(self.constraint_length):
-                    if (gen >> i) & 1:
-                        parity ^= (temp_state >> i) & 1
-                encoded.append(parity)
-        
         stats = {
             "input_length": len(input_bits),
             "output_length": len(encoded),
@@ -130,17 +119,23 @@ class CCSDSReedSolomon:
     
     def encode(self, data: bytes) -> Tuple[bytes, Dict]:
         """Encode data with RS code."""
+        # Pad data to required length if needed
+        if len(data) > self.config['k']:
+            data = data[:self.config['k']]
+        
         encoded = self.codec.encode(data)
+        # encoded is bytearray, convert to bytes
+        encoded_bytes = bytes(encoded) if isinstance(encoded, bytearray) else bytes(encoded)
         
         stats = {
             "original_length": len(data),
-            "encoded_length": len(encoded[0]),
+            "encoded_length": len(encoded_bytes),
             "parity_symbols": self.config["nsym"],
             "error_correction_capability": self.config["t"],
             "code_rate": f"{self.config['k']}/{self.config['n']}"
         }
         
-        return bytes(encoded[0]), stats
+        return encoded_bytes, stats
     
     def decode(self, encoded_data: bytes) -> Tuple[bytes, Dict]:
         """Decode RS encoded data."""
@@ -390,8 +385,8 @@ def ccsds_reed_solomon_encode(
 
 def ccsds_concatenated_encode(
     data: Annotated[str, "Data to encode"],
-    conv_standard: Annotated[str, "Convolutional code standard", "CCSDS_k3_r12"],
-    rs_standard: Annotated[str, "Reed-Solomon standard", "CCSDS_rs255_223"],
+    conv_standard: Annotated[str, "Convolutional code standard"] = "CCSDS_k3_r12",
+    rs_standard: Annotated[str, "Reed-Solomon standard"] = "CCSDS_rs255_223",
 ) -> str:
     """Encode using CCSDS Concatenated Code (RS + Conv)."""
     try:
@@ -421,7 +416,7 @@ def ccsds_concatenated_encode(
 
 def ccsds_turbo_encode(
     data: Annotated[str, "Data to encode"],
-    frame_size: Annotated[int, "Turbo code frame size in bits", "6144"],
+    frame_size: Annotated[int, "Turbo code frame size in bits"] = 6144,
 ) -> str:
     """Encode using CCSDS Turbo Code."""
     try:

@@ -151,7 +151,9 @@ def reed_solomon_encode(
         
         # Encode
         encoded = rsc.encode(data_bytes)
-        encoded_b64 = base64.b64encode(bytes(encoded[0])).decode()
+        # encoded is bytearray, convert to bytes and encode as base64
+        encoded_bytes = bytes(encoded) if isinstance(encoded, bytearray) else encoded
+        encoded_b64 = base64.b64encode(encoded_bytes).decode()
         
         return json.dumps({
             "status": "success",
@@ -160,8 +162,8 @@ def reed_solomon_encode(
             "original_length": len(data_bytes),
             "error_correction_symbols": nsym,
             "encoded_data_base64": encoded_b64,
-            "encoded_length": len(encoded[0]),
-            "total_symbols": len(encoded[0])
+            "encoded_length": len(encoded_bytes),
+            "total_symbols": len(encoded_bytes)
         }, indent=2)
     except Exception as e:
         return json.dumps({
