@@ -1,0 +1,14 @@
+{
+  "servers": {
+    "filesystem": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-filesystem", "C:\\Users\\murat\\workspace\\mcp-server-test"]
+    },
+    "python": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["C:\\Users\\murat\\workspace\\mcp-server-test\\mcp-python.js"]
+    }
+  }
+}

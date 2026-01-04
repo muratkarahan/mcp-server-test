@@ -1,0 +1,2 @@
+Merhaba Murat 👋
+Bu dosya MCP stdio ile yazildi.
